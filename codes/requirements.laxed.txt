@@ -54,3 +54,5 @@ x_transformers==1.0.4
 bitsandbytes
 lion-pytorch==0.0.7
 # triton==2.0.0a2
+
+git+https://github.com/repodiac/german_transliterate

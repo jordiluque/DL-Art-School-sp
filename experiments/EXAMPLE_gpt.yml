@@ -1,19 +1,19 @@
-name: Test1
+name: Spanish
 model: extensibletrainer
 scale: 1
-gpu_ids: [0] # <-- unless you have multiple gpus, use this
+gpu_ids: [2,3,4,5,6,7] # <-- unless you have multiple gpus, use this
 start_step: 0 # -1 causes 0.pth to be saved!
-checkpointing_enabled: true  # <-- Gradient checkpointing. Enable for huge GPU memory savings. Disable for distributed training.
+checkpointing_enabled: false  # <-- Gradient checkpointing. Enable for huge GPU memory savings. Disable for distributed training.
 fp16: false # TODO: why does enabling this with 8bit slow down perf??
 use_8bit: True
-wandb: false  # <-- enable to log to wandb. tensorboard logging is always enabled.
+wandb: True  # <-- enable to log to wandb. tensorboard logging is always enabled.
 use_tb_logger: true
 
 datasets:
   train:
     name: TestDataset
     n_workers: 8 # idk what this does
-    batch_size: 62 # This leads to ~16GB of vram usage on my 3090.
+    batch_size: 30 # This leads to ~16GB of vram usage on my 3090.
     mode: paired_voice_audio
     path: /home/jls/repos/VC/tortoise-TTS/datasets/voxpopuli_LJ/train.txt
     fetcher_mode: ['lj'] # CHANGEME if your dataset isn't in LJSpeech format
@@ -24,13 +24,13 @@ datasets:
     load_conditioning: True
     num_conditioning_candidates: 2
     conditioning_length: 44000
-    use_bpe_tokenizer: False
-    tokenizer_vocab: ../custom_language_tokenizer.json
+    use_bpe_tokenizer: True
+    tokenizer_vocab: ../spanish_language_tokenizer.json
     load_aligned_codes: False
   val:
     name: TestValidation
     n_workers: 1
-    batch_size: 33 # this could be higher probably
+    batch_size: 12 # this could be higher probably
     mode: paired_voice_audio
     path: /home/jls/repos/VC/tortoise-TTS/datasets/voxpopuli_LJ/val.txt
     fetcher_mode: ['lj']
@@ -41,8 +41,8 @@ datasets:
     load_conditioning: True
     num_conditioning_candidates: 2
     conditioning_length: 44000
-    use_bpe_tokenizer: False
-    tokenizer_vocab: ../custom_language_tokenizer.json
+    use_bpe_tokenizer: True
+    tokenizer_vocab: ../spanish_language_tokenizer.json
     load_aligned_codes: False
 
 steps:        
@@ -51,7 +51,7 @@ steps:
     loss_log_buffer: 500 # no idea what this does
 
     # Generally follows the recipe from the DALLE paper.
-    optimizer: adamw # this should be adamw_zero if you're using distributed training
+    optimizer: adamw_zero # this should be adamw_zero if you're using distributed training
     #optimizer: lion
     optimizer_params:
       lr: !!float 1e-5 # CHANGEME: this was originally 1e-4; I reduced it to 1e-5 because it's fine-tuning, but **you should experiment with this value**
@@ -128,10 +128,10 @@ train: # CHANGEME: ALL OF THESE PARAMETERS SHOULD BE EXPERIMENTED WITH
   niter: 50000
   warmup_iter: -1
   mega_batch_factor: 4    # <-- Gradient accumulation factor. If you are running OOM, increase this to [2,4,8].
-  val_freq: 60 # TODO set this to epoch size * something
+  val_freq: 300 # TODO set this to epoch size * something
 
   default_lr_scheme: MultiStepLR
-  gen_lr_steps: [320, 640, 896, 1152] #[50000, 100000, 140000, 180000]
+  gen_lr_steps: [6240, 12480, 17472, 22464] #[50000, 100000, 140000, 180000]
   lr_gamma: 0.5
   ema_enabled: false
   #manual_seed: 1337 # add this if you want reproducibility
@@ -140,8 +140,8 @@ eval:
   pure: true # see train.py
 
 logger:
-  print_freq: 20 # TODO: set this to epoch size
-  save_checkpoint_freq: 60 # CHANGEME: especially you should increase this it's really slow
+  print_freq: 100 # TODO: set this to epoch size
+  save_checkpoint_freq: 300 # CHANGEME: especially you should increase this it's really slow
   visuals: [gen, mel] #TODO: figure this out
   visual_debug_rate: 500
   is_mel_spectrogram: true
@@ -156,7 +156,7 @@ upgrades:
   # For Colab use 1 or 2 for gDrive and 5 for instance drive
   # 1 == Leave last saved checkpoint + last saved state (about 6.8 GB).
   # 2 == Leave last 2 saved checkpoints + last saved states (about 2 *~ 6.8 GB =~ 13.6 GB).
-  number_of_checkpoints_to_save: 0
+  number_of_checkpoints_to_save: 2
   # Variable: number_of_states_to_save
   # Description: Define how many states should be saved on disk (1 state =~ 3.4 GB)
   # if disable_state_saving is set as true this option will be inactive
@@ -166,4 +166,4 @@ upgrades:
   # For Colab use 1 or 2 for gDrive and 5 for instance drive
   # 1 == Leave last saved state (about 3.4 GB).
   # 2 == Leave last 2 saved states (about 2 *~ 3.4 GB =~ 6.8 GB).
-  number_of_states_to_save: 0
+  number_of_states_to_save: 2
