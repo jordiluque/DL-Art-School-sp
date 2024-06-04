@@ -1,4 +1,4 @@
-name: Spanish
+name: Spanish_wmel_10
 model: extensibletrainer
 scale: 1
 gpu_ids: [2,3,4,5,6,7] # <-- unless you have multiple gpus, use this
@@ -13,7 +13,7 @@ datasets:
   train:
     name: TestDataset
     n_workers: 8 # idk what this does
-    batch_size: 30 # This leads to ~16GB of vram usage on my 3090.
+    batch_size: 60 # This leads to ~16GB of vram usage on my 3090.
     mode: paired_voice_audio
     path: /home/jls/repos/VC/tortoise-TTS/datasets/voxpopuli_LJ/train.txt
     fetcher_mode: ['lj'] # CHANGEME if your dataset isn't in LJSpeech format
@@ -91,7 +91,7 @@ steps:
         key: loss_text_ce
       mel_ce:
         type: direct
-        weight: 1
+        weight: 10
         key: loss_mel_ce
 
 networks:
@@ -141,7 +141,7 @@ eval:
 
 logger:
   print_freq: 100 # TODO: set this to epoch size
-  save_checkpoint_freq: 300 # CHANGEME: especially you should increase this it's really slow
+  save_checkpoint_freq: 3000 # CHANGEME: especially you should increase this it's really slow
   visuals: [gen, mel] #TODO: figure this out
   visual_debug_rate: 500
   is_mel_spectrogram: true
